@@ -5,11 +5,19 @@
 
 // require graphql package
 const graphql = require('graphql')
+const _ = require('lodash')
+
+// dummy data for our queries
+const books = [
+  { name: 'Name of the Wind', genre: 'Fantasy', id: '1' },
+  { name: 'The Final Empire', genre: 'Fantasy', id: '2' },
+  { name: 'The Long Earth', genre: 'Sci-Fi', id: '3' },
+]
 
 // deconstruct  GraphQL data types from graphql because graphql does not accept vanilla value types such as String or Object
 const { GraphQLObjectType, GraphQLString, GraphQLSchema } = graphql
 
-// create new type for schema using the GraphQLObjectType
+// create new type for object using the GraphQLObjectType
 const BookType = new GraphQLObjectType({
   // give the booktype a name
   name: 'Book',
@@ -27,14 +35,14 @@ const BookType = new GraphQLObjectType({
 const RootQuery = new GraphQLObjectType({
   // give name of 'RootQueryType' name
   name: 'RootQueryType',
-  // each of the fields will be a type of root query. Root query doesn't need to be a function because it does not care about order whenever referencing other schema types
+  // each of the fields will be a type of root query. Root query doesn't need to be a function because it does not care about order whenever referencing other object types
   fields: {
     // the name of the field here will directly corilate with the query being called. ex: books{
     //     name
     //     genre
     // }
     book: {
-      // type here creates the connection between our query being called (book) and the Schema type we want to reference (BookType)
+      // type here creates the connection between our query being called (book) and the object type we want to reference (BookType)
       type: BookType,
       // args defines the fields being searched through in order to return data from the query being executed. Here, we are saying that we want the book query to reference the BookType and return the contents belonging to the id being passed in as an argument. We also have to specify the data type of whatever args are being passed in.
       // ex query: book(id: '123') {
@@ -46,13 +54,26 @@ const RootQuery = new GraphQLObjectType({
       //parents will be relavent when we look at relationships between data
       //args references the args parameter above
       resolve(parents, args) {
-        // this is where the query actually happens using the args.id
-        args.id
+        // this is where the query actually happens using the args (id in this example). The resolve args will hold the info comming in from the query being executed by the client
+        // IMPORTANT
+        // CODE FOR ACTUALLY GOING AND COLLECTING THE DATA BEING REQUESTED WILL GO HERE WHETHER IT'S THROUGH SQL NOSQL JSON OR ANY OTHER DATA TYPE. ALTHOUGH WE ARE USING LODASH FOR THIS EXAMPLE, THIS COULD BE DONE WITH ANY TOOL OF CHOICE INCLUDING VANILLA JAVASCRIPT!!!
+        return _.find(books, { id: args.id })
       },
     },
   },
 })
 
+// Example Query:
+// here we are going into the book field of the RootQuery and, because the args are set to receive an id, we give at an id of '2' to find inside of the BookType
+// {
+//    book(id: '2'){
+//        Whatever properties we have in here will be the properties the schema sends back to the request being made for information. If we were to ommit genre for example all that would be returned from the book with the id of 2 is the name of the book
+//        name,
+//        genre
+//   }
+// }
+
+//export the created schema so we can import and use it somewhere else
 module.exports = new graphql.GraphQLSchema({
   //initial RootQuery
   query: RootQuery,
