@@ -9,13 +9,49 @@ const _ = require('lodash')
 
 // dummy data for our queries
 const books = [
-  { name: 'Name of the Wind', genre: 'Fantasy', id: '1' },
-  { name: 'The Final Empire', genre: 'Fantasy', id: '2' },
-  { name: 'The Long Earth', genre: 'Sci-Fi', id: '3' },
+  {
+    name: 'Name of the Wind',
+    genre: 'Fantasy',
+    id: '1',
+  },
+  {
+    name: 'The Final Empire',
+    genre: 'Fantasy',
+    id: '2',
+  },
+  {
+    name: 'The Long Earth',
+    genre: 'Sci-Fi',
+    id: '3',
+  },
+]
+
+const authors = [
+  {
+    name: 'Patrick Rothfuss',
+    age: 44,
+    id: '1',
+  },
+  {
+    name: 'Brandon Sanderson',
+    age: 42,
+    id: '2',
+  },
+  {
+    name: 'Terry Pratchett',
+    age: 66,
+    id: '3',
+  },
 ]
 
 // deconstruct  GraphQL data types from graphql because graphql does not accept vanilla value types such as String or Object
-const { GraphQLObjectType, GraphQLString, GraphQLSchema } = graphql
+const {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLSchema,
+  GraphQLID,
+  GraphQLInt,
+} = graphql
 
 // create new type for object using the GraphQLObjectType
 const BookType = new GraphQLObjectType({
@@ -24,10 +60,26 @@ const BookType = new GraphQLObjectType({
 
   // declare the different fields you want available for your type. For schema types, the fields must be a function that returns an object to make sure we have no reference errors whenever connecting multiple schema types
   fields: () => ({
-    //for each field, we declare the value type using graphql  data types instead of vanilla data types
-    id: { type: GraphQLString },
+    // for each field, we declare the value type using graphql  data types instead of vanilla data types
+    // GraphQLID turns any int being passed in as an id into a string to allow us to pass in both strings and ints as ids
+    id: { type: GraphQLID },
     name: { type: GraphQLString },
     genre: { type: GraphQLString },
+  }),
+})
+
+const AuthorType = new GraphQLObjectType({
+  name: 'Author',
+  fields: () => ({
+    id: {
+      type: GraphQLID,
+    },
+    name: {
+      type: GraphQLString,
+    },
+    age: {
+      type: GraphQLInt,
+    },
   }),
 })
 
@@ -49,7 +101,7 @@ const RootQuery = new GraphQLObjectType({
       //     name
       //     genre
       // }
-      args: { id: { type: GraphQLString } },
+      args: { id: { type: GraphQLID } },
       // here we write code to get whatever data we need from our database or some other source
       //parents will be relavent when we look at relationships between data
       //args references the args parameter above
@@ -59,6 +111,13 @@ const RootQuery = new GraphQLObjectType({
         // CODE FOR ACTUALLY GOING AND COLLECTING THE DATA BEING REQUESTED WILL GO HERE WHETHER IT'S THROUGH SQL NOSQL JSON OR ANY OTHER DATA TYPE. ALTHOUGH WE ARE USING LODASH FOR THIS EXAMPLE, THIS COULD BE DONE WITH ANY TOOL OF CHOICE INCLUDING VANILLA JAVASCRIPT!!!
         return _.find(books, { id: args.id })
       },
+    },
+  },
+  author: {
+    type: AuthorType,
+    args: { id: { GraphQLID } },
+    resolve(parents, args) {
+      return _.find(authors, { id: args.id })
     },
   },
 })
@@ -74,7 +133,7 @@ const RootQuery = new GraphQLObjectType({
 // }
 
 //export the created schema so we can import and use it somewhere else
-module.exports = new graphql.GraphQLSchema({
+module.exports = new GraphQLSchema({
   //initial RootQuery
   query: RootQuery,
 })
