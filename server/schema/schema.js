@@ -111,6 +111,27 @@ const RootQuery = new GraphQLObjectType({
   },
 })
 
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    addAuthor: {
+      type: AuthorType,
+      args: {
+        name: { type: GraphQLString },
+        age: { type: GraphQLInt },
+      },
+      resolve(parent, args) {
+        let author = new Author({
+          name: args.name,
+          age: args.age,
+        })
+
+        return author.save()
+      },
+    },
+  },
+})
+
 // Example Query:
 // here we are going into the book field of the RootQuery and, because the args are set to receive an id, we give at an id of '2' to find inside of the BookType
 // {
@@ -125,4 +146,5 @@ const RootQuery = new GraphQLObjectType({
 module.exports = new GraphQLSchema({
   //initial RootQuery
   query: RootQuery,
+  mutation: Mutation,
 })
