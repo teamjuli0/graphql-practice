@@ -3,6 +3,14 @@ const app = express()
 const { graphqlHTTP } = require('express-graphql')
 const PORT = 4000
 const schema = require('./schema/schema')
+const mongoose = require('mongoose')
+require('dotenv').config()
+
+mongoose.connect(process.env.ATLAS_CONNECTION_STRING)
+
+mongoose.connection.once('open', () => {
+  console.log('connected to database')
+})
 
 // set up graphql middleware under the /graphql url path
 app.use(
